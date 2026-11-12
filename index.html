@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark" data-kufi-style="hybrid">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cahaya Diatas Cahaya - Jadwal Adzan, Kalender Hijriyah & Mutiara Hikmah</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Custom Styling & Kufi Calligraphy -->
+  <link rel="stylesheet" href="css/kufi-calligraphy.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#064e3b">
+  <meta name="description" content="Aplikasi Adzan Terupdate & Canggih 'Cahaya Diatas Cahaya' - Kalender Masehi & Hijriyah, Khot Kuffi Murabba & Eastern, Suasana Masjid Nabawi Dinamis, Hadits & Nasehat Ulama di Setiap Waktu.">
+</head>
+<body class="min-h-screen text-slate-100 antialiased pb-16 selection:bg-amber-500 selection:text-slate-900">
+
+  <!-- ==========================================
+       TOAST NOTIFIKASI
+       ========================================== -->
+  <div id="copy-toast" class="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl bg-emerald-600 text-white font-medium shadow-2xl transition-all duration-300 opacity-0 translate-y-2 pointer-events-none flex items-center space-x-2 border border-emerald-400/40">
+    <span>✨</span>
+    <span>Teks berhasil disalin!</span>
+  </div>
+
+  <!-- Indikator Adzan Sedang Berkumandang -->
+  <div id="audio-status-indicator" class="hidden fixed top-4 right-4 z-50 bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-5 py-3 rounded-full shadow-2xl flex items-center space-x-3 border border-emerald-400/50 animate-bounce">
+    <span class="flex h-3 w-3 relative">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-300 opacity-80"></span>
+      <span class="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+    </span>
+    <span class="text-xs font-black tracking-wide font-sans">Adzan Sedang Berkumandang...</span>
+    <button onclick="App.closeDoaModal(); AdzanAudioPlayer.stopAdzan();" class="ml-2 text-xs bg-slate-900/60 hover:bg-slate-900 px-2 py-1 rounded-full text-amber-300 font-bold">Hentikan</button>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-6">
+
+    <!-- ==========================================
+         TOP BAR: Branding, Tanggalan, & Kontrol
+         ========================================== -->
+    <header class="glass-panel-warm rounded-3xl p-6 mb-6">
+      <div class="flex flex-col lg:flex-row items-center justify-between gap-6">
+        
+        <!-- Logo & Identitas Aplikasi "Cahaya Diatas Cahaya" -->
+        <div class="flex items-center space-x-4">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-600 via-emerald-600 to-teal-400 flex items-center justify-center shadow-xl shadow-amber-500/20 border border-amber-300/30 flex-shrink-0 glow-cahaya">
+            <span class="text-3xl">🕌</span>
+          </div>
+          <div>
+            <div class="flex items-center space-x-2 flex-wrap">
+              <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-2">
+                <span>Cahaya Diatas Cahaya</span>
+              </h1>
+              <span class="text-[10px] font-extrabold uppercase tracking-widest bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full">
+                نُورٌ عَلَىٰ نُورٍ
+              </span>
+            </div>
+            <p class="text-xs text-slate-300 mt-1 flex items-center gap-1.5 flex-wrap">
+              <span>Pengingat Adzan Terupdate, Kalender Hijriyah & Mutiara Hikmah Nabawi</span>
+              <button id="btn-open-nur-ayat" class="text-amber-400 hover:text-amber-300 font-bold underline decoration-dotted text-[11px] ml-1" title="Baca Tadabbur QS. An-Nur: 35">
+                [Tadabbur QS. An-Nur: 35]
+              </button>
+            </p>
+          </div>
+        </div>
+
+        <!-- Tanggal Masehi & Tanggal Hijriyah -->
+        <div class="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left bg-slate-950/60 px-5 py-3.5 rounded-2xl border border-amber-500/30 shadow-inner">
+          
+          <!-- Masehi -->
+          <div class="border-b sm:border-b-0 sm:border-r border-slate-700/60 pb-2 sm:pb-0 sm:pr-4">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tanggal Masehi</div>
+            <div id="masehi-date" class="text-xs sm:text-sm font-extrabold text-slate-100 mt-0.5">Memuat Masehi...</div>
+          </div>
+
+          <!-- Hijriyah -->
+          <div class="sm:pl-1">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider">Tanggal Hijriyah</span>
+              <!-- Kalibrasi Rukyatul Hilal (+/- hari) -->
+              <div class="flex items-center space-x-1 text-[11px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-700" title="Sesuaikan tanggal rukyatul hilal sidang isbat">
+                <span class="text-[10px] text-slate-400 mr-1">Rukyat:</span>
+                <button id="btn-hijri-minus" class="w-4 h-4 rounded bg-slate-800 hover:bg-amber-600 hover:text-white text-xs flex items-center justify-center font-bold transition">−</button>
+                <span id="hijri-adj-val" class="font-mono text-xs text-amber-400 font-bold px-0.5">+0</span>
+                <button id="btn-hijri-plus" class="w-4 h-4 rounded bg-slate-800 hover:bg-amber-600 hover:text-white text-xs flex items-center justify-center font-bold transition">+</button>
+              </div>
+            </div>
+            <div id="hijri-date" class="text-xs sm:text-sm font-black text-amber-300 mt-0.5">Memuat Hijriyah...</div>
+            <div id="hijri-date-ar" class="text-xs font-kufi-eastern text-amber-200/80 mt-0.5" dir="rtl">...</div>
+          </div>
+        </div>
+
+        <!-- Tombol Aksi Cepat (Khot Kuffi Switcher & Tema) -->
+        <div class="flex items-center space-x-2.5">
+          <!-- Sakelar Tipografi Kufi -->
+          <div class="relative">
+            <button id="btn-cycle-kufi" class="px-3.5 py-2.5 rounded-2xl bg-slate-900/80 hover:bg-slate-800 border border-amber-500/40 text-amber-300 transition text-xs font-bold flex items-center space-x-2 shadow-sm" title="Klik untuk beralih antara Khot Kuffi Eastern, Kuffi Murabba & Harmonis">
+              <span>✒️</span>
+              <span id="current-kufi-style-label" class="hidden sm:inline">Harmonis (Kufi)</span>
+            </button>
+          </div>
+
+          <!-- Tombol Edukasi Khot Kuffi -->
+          <button id="btn-open-kufi-modal" class="p-2.5 rounded-2xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 transition text-slate-300 text-xs font-bold" title="Mengenal Khot Kuffi Murabba & Eastern">
+            <span>📜</span>
+          </button>
+
+          <!-- Ganti Mode Tema -->
+          <button id="btn-toggle-theme" class="p-2.5 rounded-2xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 transition text-slate-300" title="Ganti Mode Tampilan (Gelap / Terang)">
+            <!-- Diisi otomatis oleh JS -->
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Badge Hari Istimewa Islam (Ayyamul Bidh, Jum'at, Puasa Sunnah, dll) -->
+      <div id="special-islamic-event-badge" class="hidden mt-4 pt-3 border-t border-amber-500/20 text-xs text-amber-200/90 flex items-center gap-2">
+        <!-- Diisi otomatis oleh hijri.js -->
+      </div>
+    </header>
+
+    <!-- ==========================================
+         ATMOSPHERE BAR: Status Suasana Masjid Nabawi & Kontrol Visual
+         ========================================== -->
+    <div class="glass-panel rounded-2xl px-5 py-4 mb-6 flex flex-wrap items-center justify-between gap-4 border border-amber-500/30">
+      
+      <div class="flex items-center space-x-3.5">
+        <span class="text-3xl animate-pulse">🕌</span>
+        <div>
+          <div class="flex items-center space-x-2 flex-wrap">
+            <span class="text-[11px] uppercase tracking-wider text-slate-400 font-extrabold">Suasana Masjid Nabawi:</span>
+            <span id="nabawi-status-badge" class="px-3 py-0.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+              Otomatis Mengikuti Waktu Sholat
+            </span>
+          </div>
+          <div id="nabawi-status-title" class="text-sm sm:text-base font-extrabold text-white mt-1">
+            Keadaan Pelataran & Kubah Hijau Berdasarkan Waktu Sholat
+          </div>
+          <div id="nabawi-status-desc" class="text-xs text-slate-400 mt-0.5">
+            Sinar mentari dan lampu-lampu megah Masjid Nabawi berganti secara otomatis
+          </div>
+        </div>
+      </div>
+
+      <!-- Kontrol Suasana Video & Efek -->
+      <div class="flex items-center space-x-2 flex-wrap gap-y-2">
+        <!-- Dropdown Pilih Keadaan -->
+        <select id="atmosphere-select" class="bg-slate-950/90 border border-amber-500/40 text-slate-200 text-xs font-bold rounded-xl px-3 py-2 outline-none focus:border-amber-400">
+          <option value="auto">🔄 Otomatis (Ikuti Sholat)</option>
+          <option value="imsak">🌙 Hening Imsak & Fajar</option>
+          <option value="subuh">🌅 Sholat Subuh</option>
+          <option value="syuruq">✨ Payung Raksasa Mekar</option>
+          <option value="dhuha">☀️ Pagi Cerah Dhuha</option>
+          <option value="dzuhur">☀️ Dzuhur Megah</option>
+          <option value="ashar">⛅ Sore Teduh Ashar</option>
+          <option value="maghrib">🌇 Senja Indah Maghrib</option>
+          <option value="isya">🌌 Malam Gemerlap Isya</option>
+          <option value="tahajjud">🌟 Khusyuk Tahajjud</option>
+          <option value="live">🔴 Live Madinah 24/7</option>
+        </select>
+
+        <!-- Tombol Blur Efek -->
+        <button id="btn-video-blur-toggle" class="px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 transition flex items-center space-x-1" title="Sesuaikan kejernihan latar belakang">
+          <span>🌫️ Estetik</span>
+        </button>
+
+        <!-- Tombol Beralih Mode Foto HD / Video Live Streaming -->
+        <button id="btn-media-toggle" class="px-3 py-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-300 transition flex items-center space-x-1" title="Beralih ke mode video streaming">
+          <span>🖼️ Mode Foto HD</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Banner Izin Notifikasi (Jika Belum Diizinkan) -->
+    <div id="notification-banner" class="glass-panel border-amber-500/40 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 bg-amber-950/40">
+      <div class="flex items-center space-x-3 text-sm text-amber-200">
+        <span class="text-2xl">🔔</span>
+        <span>Aktifkan notifikasi desktop agar suara adzan dan pengingat waktu sholat otomatis berbunyi saat tiba!</span>
+      </div>
+      <button id="btn-req-notification" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs uppercase tracking-wider transition whitespace-nowrap shadow-lg shadow-amber-500/30">
+        Izinkan Notifikasi
+      </button>
+    </div>
+
+    <!-- ==========================================
+         HERO SECTION: Jam Digital, Countdown & Audio
+         ========================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      
+      <!-- Kolom 1 & 2: Jam Utama & Countdown Sholat -->
+      <div class="lg:col-span-2 glass-panel-warm rounded-3xl p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+        
+        <!-- Kaligrafi Latar Belakang Kufi Murabba Geometris Samar -->
+        <div class="absolute right-4 top-4 opacity-10 pointer-events-none max-w-[200px] hidden sm:block">
+          <div class="font-kufi-murabba text-4xl text-amber-300 text-right leading-tight" dir="rtl">
+            نور على نور
+          </div>
+        </div>
+
+        <div>
+          <!-- Pilihan Kota & GPS -->
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div class="flex items-center space-x-2">
+              <span class="text-xs uppercase font-extrabold tracking-wider text-slate-400">Lokasi:</span>
+              <select id="city-select" class="bg-slate-950/80 border border-slate-700 text-slate-100 text-xs font-bold rounded-xl px-3 py-2 outline-none focus:border-amber-400">
+                <!-- Diisi otomatis oleh JS -->
+              </select>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <button id="btn-gps" class="text-xs font-bold px-3 py-2 rounded-xl bg-emerald-700/40 hover:bg-emerald-600/50 border border-emerald-500/40 text-emerald-300 transition flex items-center space-x-1.5 shadow-sm">
+                <span>📍</span>
+                <span>Lokasi Saya (GPS)</span>
+              </button>
+              <span id="data-source-badge" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 text-slate-400 border border-slate-700/50">
+                Standar Kemenag RI
+              </span>
+            </div>
+          </div>
+
+          <!-- Jam Real-Time Besar -->
+          <div class="flex items-baseline space-x-3 mb-2">
+            <div id="live-clock" class="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight font-mono text-emerald-400 text-nur-glow">
+              --:--
+            </div>
+            <div id="live-seconds" class="text-2xl sm:text-3xl md:text-4xl font-mono text-amber-400/90 font-bold">
+              00
+            </div>
+            <span class="text-xs uppercase font-black tracking-widest text-slate-400 pl-2">WIB</span>
+          </div>
+
+          <div id="current-location-label" class="text-xs sm:text-sm text-slate-300 font-semibold flex items-center gap-1.5">
+            <span>📍 DKI Jakarta, Indonesia</span>
+          </div>
+        </div>
+
+        <!-- Kartu Target Menuju Sholat Berikutnya -->
+        <div class="mt-8 pt-6 border-t border-slate-700/50">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <div>
+              <span class="text-xs uppercase tracking-wider text-slate-400 font-bold">Menuju Waktu Sholat</span>
+              <h3 class="text-2xl sm:text-3xl font-black text-amber-300 flex items-center space-x-2 mt-0.5">
+                <span id="next-prayer-name">Ashar</span>
+                <span class="text-slate-400 text-sm font-normal">pukul</span>
+                <span id="next-prayer-target-time" class="text-white font-mono font-black">--:--</span>
+              </h3>
+            </div>
+            <div class="text-left sm:text-right">
+              <span class="text-[11px] uppercase tracking-wider text-slate-400 block font-bold">Sisa Waktu Menuju Adzan</span>
+              <div id="next-prayer-countdown" class="text-2xl sm:text-4xl font-mono font-black text-white text-emerald-glow">
+                00:00:00
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress Bar Rentang Waktu Sholat -->
+          <div class="w-full h-3 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-slate-700/60 shadow-inner">
+            <div id="prayer-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 via-amber-400 to-amber-500 rounded-full transition-all duration-1000" style="width: 50%;"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Kolom 3: Pengaturan Audio Adzan & Arah Kiblat -->
+      <div class="glass-panel-warm rounded-3xl p-6 sm:p-7 flex flex-col justify-between">
+        
+        <!-- Bagian Audio Adzan -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-black text-white flex items-center space-x-2">
+              <span>🔊</span>
+              <span>Audio Adzan</span>
+            </h2>
+            <button id="btn-mute" class="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 transition text-base" title="Mute / Unmute">
+              🔊
+            </button>
+          </div>
+
+          <!-- Pilihan Muadzin / Versi Adzan -->
+          <div class="mb-4">
+            <label class="text-[11px] text-slate-400 uppercase tracking-wider font-bold block mb-1.5">Pilihan Muadzin</label>
+            <select id="adzan-voice-select" class="w-full bg-slate-950/90 border border-slate-700 text-slate-200 text-xs font-bold rounded-xl p-3 outline-none focus:border-amber-400">
+              <option value="madinah">Adzan Madinah Al-Munawwarah (Masjid Nabawi)</option>
+              <option value="makkah">Adzan Makkah Al-Mukarramah (Masjidil Haram)</option>
+              <option value="alaqsa">Adzan Masjid Al-Aqsa (Al-Quds)</option>
+              <option value="mesir">Adzan Kairo (Mesir)</option>
+              <option value="subuh">Adzan Khusus Subuh (Khas Fajar Madinah)</option>
+            </select>
+          </div>
+
+          <!-- Slider Volume -->
+          <div class="mb-5">
+            <div class="flex justify-between text-xs text-slate-400 mb-1.5 font-bold">
+              <span>Volume Suara</span>
+              <span id="volume-val-label" class="font-mono text-amber-400">80%</span>
+            </div>
+            <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.8" class="w-full h-2 bg-slate-900 rounded-lg cursor-pointer">
+          </div>
+
+          <!-- Tombol Tes Suara Adzan & Doa -->
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-test-adzan" class="py-3 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-extrabold text-xs uppercase tracking-wider text-white shadow-lg shadow-emerald-600/30 transition flex items-center justify-center space-x-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <span>Tes Adzan</span>
+            </button>
+
+            <button onclick="App.showDoaModal();" class="py-3 px-3 rounded-xl bg-amber-600 hover:bg-amber-500 font-extrabold text-xs uppercase tracking-wider text-slate-950 shadow-lg shadow-amber-600/30 transition flex items-center justify-center space-x-1.5">
+              <span>🤲 Doa Adzan</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bagian Kompas Arah Kiblat -->
+        <div class="mt-6 pt-5 border-t border-slate-700/50 flex items-center justify-between">
+          <div>
+            <span class="text-[11px] text-slate-400 uppercase tracking-wider block font-bold">Arah Kiblat</span>
+            <div class="text-2xl font-black text-amber-400 font-mono mt-0.5" id="qibla-degree">295.2°</div>
+            <div id="qibla-distance" class="text-[11px] text-slate-400 mt-0.5">... km ke Ka'bah</div>
+          </div>
+
+          <!-- Kompas Mini -->
+          <div class="w-16 h-16 rounded-full border-2 border-amber-500/40 flex items-center justify-center relative compass-ring">
+            <span class="absolute top-1 text-[9px] font-black text-rose-500">U</span>
+            <span class="absolute bottom-1 text-[9px] font-bold text-slate-500">S</span>
+            <span class="absolute right-1.5 text-[9px] font-bold text-slate-500">T</span>
+            <span class="absolute left-1.5 text-[9px] font-bold text-slate-500">B</span>
+            <div id="qibla-compass-arrow" class="w-1.5 h-10 bg-gradient-to-t from-emerald-500 via-amber-300 to-amber-500 rounded-full transition-transform duration-700 shadow-lg" style="transform: rotate(295deg);"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ==========================================
+         GRID KARTU JADWAL WAKTU SHOLAT (9 WAKTU LENGKAP)
+         ========================================== -->
+    <div class="mb-10">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+        <div>
+          <h2 class="text-lg sm:text-xl font-black text-white flex items-center space-x-2">
+            <span>📅</span>
+            <span>Jadwal Waktu Sholat Hari Ini</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Standar Kementerian Agama RI (MABIMS) & Koreksi Ihtiyat +2 Menit</p>
+        </div>
+        <span class="text-xs text-amber-300/90 font-medium">Klik salah satu kartu untuk membaca hadits & mutiara waktu tersebut ⬇️</span>
+      </div>
+
+      <div id="prayer-cards-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-9 gap-3">
+        <!-- Dirender secara dinamis oleh js/app.js -->
+      </div>
+    </div>
+
+    <!-- ==========================================
+         MUTIARA HIKMAH: Hadits, Atsar Sahabat & Ulama di Setiap Waktu
+         ========================================== -->
+    <section id="hadits-section" class="glass-panel-warm rounded-3xl p-6 sm:p-8 mb-10 relative">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-3xl">📖</span>
+            <h2 class="text-xl sm:text-2xl font-black text-white">Mutiara Hikmah di Setiap Waktu</h2>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1">
+            Hadits Shahih Nabi ﷺ, Atsar Sahabat Khulafaur Rasyidin, dan Mutiara Para Ulama
+          </p>
+        </div>
+
+        <!-- Filter Kategori Hadits/Sahabat/Ulama -->
+        <div class="flex items-center space-x-2">
+          <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Kategori:</span>
+          <select id="quote-category-filter" class="bg-slate-950 border border-slate-700 text-xs font-bold text-slate-200 rounded-xl px-3 py-2 outline-none focus:border-amber-400">
+            <option value="all">Semua Kategori</option>
+            <option value="hadits">Hadits Nabi ﷺ</option>
+            <option value="sahabat">Atsar Sahabat</option>
+            <option value="ulama">Nasehat Ulama</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Pills Pemilihan Waktu Sholat (Subuh, Syuruq, Dhuha, Dzuhur, Ashar, Maghrib, Isya, Tahajjud, Imsak) -->
+      <div id="quote-prayer-pills" class="flex flex-wrap gap-2 mb-6">
+        <!-- Diisi dinamis oleh app.js -->
+      </div>
+
+      <!-- Kotak Tampilan Kutipan Hadits / Ulama -->
+      <div class="bg-slate-950/70 rounded-3xl p-6 sm:p-8 border border-amber-500/30 transition-all duration-300 relative shadow-2xl">
+        
+        <!-- Header Kutipan & Badge -->
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <span id="quote-badge-category" class="inline-flex items-center px-3.5 py-1 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+            📖 Hadits Nabi ﷺ
+          </span>
+
+          <div class="flex items-center space-x-2 flex-wrap">
+            <!-- Tombol Bacakan Terjemahan (Speech Audio) -->
+            <button id="btn-read-quote" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 transition flex items-center space-x-1" title="Dengarkan pembacaan terjemahan">
+              <span>🔊</span>
+              <span>Dengarkan</span>
+            </button>
+
+            <!-- Tombol Salin Teks -->
+            <button id="btn-copy-quote" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300 transition flex items-center space-x-1" title="Salin teks ke WhatsApp / Sosmed">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+              <span>Salin Teks</span>
+            </button>
+
+            <!-- Tombol Ganti Hadits Lain (Next) -->
+            <button id="btn-next-quote" class="px-3.5 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-xs font-black text-amber-300 transition flex items-center space-x-1">
+              <span>Ganti Kutipan ↻</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Teks Tulisan Arab (Khot Kuffi Eastern & Murabba) -->
+        <div id="quote-arabic" class="kufi-dynamic-text text-2xl sm:text-3xl md:text-4xl font-medium text-amber-200 text-right my-6 leading-loose" dir="rtl">
+          رَكْعَتَا الْفَجْرِ خَيْرٌ مِنَ الدُّنْيَا وَمَا فِيهَا
+        </div>
+
+        <!-- Terjemahan Bahasa Indonesia -->
+        <blockquote id="quote-translation" class="text-sm sm:text-base text-slate-100 italic font-medium leading-relaxed my-4 border-l-4 border-amber-500 pl-4 py-1.5">
+          "Dua rakaat fajar (shalat sunnah qabliyah Subuh) lebih baik daripada dunia seisinya."
+        </blockquote>
+
+        <!-- Informasi Perawi & Sumber -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300 mt-5 pt-4 border-t border-slate-800">
+          <div>
+            <span class="text-slate-400 block font-semibold">Disampaikan oleh:</span>
+            <span id="quote-narrator" class="font-bold text-slate-200">Rasulullah ﷺ (dari Aisyah radhiyallahu 'anha)</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block font-semibold">Takhrij / Sumber Sanad:</span>
+            <span id="quote-source" class="font-extrabold text-amber-400">HR. Muslim no. 725</span>
+          </div>
+        </div>
+
+        <!-- Penjelasan / Konteks Tambahan -->
+        <div id="quote-note" class="text-xs text-slate-300 bg-slate-900/60 rounded-2xl p-4 mt-4 border border-amber-500/20">
+          💡 <span class="font-bold">Tadabbur:</span> Jika shalat sunnah pengiringnya saja bernilai melebihi dunia, bayangkan betapa agungnya pahala shalat fardhu Subuh itu sendiri.
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ==========================================
+         FITUR ISLAMI HANGAT: Tasbih Digital & Asmaul Husna
+         ========================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+      
+      <!-- 1. Tasbih Digital Syahdu -->
+      <div class="glass-panel-warm rounded-3xl p-6 sm:p-7 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-black text-white flex items-center space-x-2">
+              <span>📿</span>
+              <span>Tasbih Digital Syahdu</span>
+            </h3>
+            
+            <div class="flex items-center space-x-2">
+              <select id="tasbih-select-dzikir" class="bg-slate-950 border border-slate-700 text-xs font-bold text-slate-200 rounded-xl px-2.5 py-1.5 outline-none focus:border-amber-400">
+                <option value="0">Subhanallah (33x)</option>
+                <option value="1">Alhamdulillah (33x)</option>
+                <option value="2">Allahu Akbar (33x)</option>
+                <option value="3">Laa ilaaha illallaah (100x)</option>
+                <option value="4">Astaghfirullah (100x)</option>
+                <option value="5">Shalawat Nabi ﷺ (100x)</option>
+              </select>
+
+              <button id="btn-tasbih-reset" class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-rose-400 border border-rose-500/30 transition" title="Reset Hitungan">
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Teks Lafadz Dzikir -->
+          <div class="text-center py-2">
+            <div id="tasbih-arabic-display" class="font-kufi-eastern text-2xl sm:text-3xl text-amber-300 font-bold mb-1" dir="rtl">
+              سُبْحَانَ اللَّهِ
+            </div>
+            <div id="tasbih-latin-display" class="text-xs font-bold text-slate-300">Subhanallah</div>
+            <div id="tasbih-meaning-display" class="text-[11px] text-slate-400 italic">"Maha Suci Allah"</div>
+          </div>
+        </div>
+
+        <!-- Tombol Klik Besar Tasbih dengan Lingkaran Progress SVG -->
+        <div class="flex flex-col items-center justify-center my-4">
+          <div id="tasbih-click-button" class="w-36 h-36 rounded-full bg-gradient-to-tr from-emerald-900 via-slate-900 to-amber-950 border-4 border-amber-400/40 flex flex-col items-center justify-center cursor-pointer shadow-2xl hover:scale-105 active:scale-95 transition-all select-none relative group">
+            
+            <svg class="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="4" />
+              <circle id="tasbih-progress-circle" cx="50" cy="50" r="45" fill="none" stroke="#fbbf24" stroke-width="4" stroke-dasharray="282.7" stroke-dashoffset="282.7" stroke-linecap="round" class="transition-all duration-300" />
+            </svg>
+
+            <span id="tasbih-count-display" class="text-4xl font-mono font-black text-white group-hover:text-amber-300 transition">0</span>
+            <span id="tasbih-target-display" class="text-[11px] font-mono text-slate-400">/ 33</span>
+            <span class="text-[9px] uppercase tracking-wider text-amber-400 mt-1 font-bold">Ketuk Dzikir</span>
+          </div>
+        </div>
+
+        <div class="text-center text-[11px] text-slate-400">
+          💡 Dilengkapi getaran lembut & nada butir tasbih kayu di setiap ketukan
+        </div>
+      </div>
+
+      <!-- 2. Asmaul Husna Interaktif -->
+      <div class="glass-panel-warm rounded-3xl p-6 sm:p-7 flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-base font-black text-white flex items-center space-x-2">
+              <span>🌟</span>
+              <span>Asmaul Husna</span>
+            </h3>
+            <button id="btn-next-asma" class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-300 transition flex items-center space-x-1">
+              <span>Acak Nama Lain ↻</span>
+            </button>
+          </div>
+
+          <p class="text-xs text-slate-400">Mengingat keagungan 99 Nama Terbaik Allah Ta'ala</p>
+
+          <!-- Tampilan Nama Allah -->
+          <div class="text-center py-6">
+            <div id="asma-arabic" class="font-kufi-eastern text-4xl sm:text-5xl font-black text-amber-300 mb-2 text-nur-glow" dir="rtl">
+              الرَّحْمَٰنُ
+            </div>
+            <div id="asma-latin" class="text-sm font-extrabold text-white mt-2">
+              1. Ar-Rahman
+            </div>
+            <div id="asma-meaning" class="text-xs text-slate-300 mt-1 max-w-md mx-auto italic">
+              "Maha Pengasih bagi seluruh makhluk di alam semesta"
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner Hadits Sholawat -->
+        <div class="bg-slate-950/70 rounded-2xl p-4 border border-emerald-500/30 text-xs text-slate-300">
+          <div class="font-bold text-emerald-300 mb-0.5">🌹 Keutamaan Sholawat:</div>
+          <div>"Barangsiapa bersholawat kepadaku satu kali, maka Allah akan bersholawat kepadanya sepuluh kali dan menghapus sepuluh kesalahannya." (HR. An-Nasa'i)</div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ==========================================
+         FOOTER
+         ========================================== -->
+    <footer class="text-center text-xs text-slate-400 pt-8 pb-4 space-y-2 border-t border-slate-800/80">
+      <div class="font-bold text-amber-300/90 text-sm">
+        نُورٌ عَلَىٰ نُورٍ • Cahaya Diatas Cahaya
+      </div>
+      <div>
+        Algoritma Astronomis Standar Kementerian Agama RI • Khot Kuffi Murabba & Khot Kuffi Eastern
+      </div>
+      <div class="text-[11px] text-slate-500">
+        Dapat dijalankan langsung secara mandiri di browser tanpa ketergantungan server (Zero-Dependency)
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- ==========================================
+       MODAL 1: DOA SETELAH ADZAN
+       ========================================== -->
+  <div id="doa-adzan-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel-warm rounded-3xl p-6 sm:p-8 max-w-xl w-full border border-amber-500/40 shadow-2xl relative">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-700/60">
+        <h3 class="text-lg font-black text-white flex items-center space-x-2">
+          <span>🤲</span>
+          <span>Doa Setelah Mendengar Adzan</span>
+        </h3>
+        <button id="btn-close-doa-modal" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="my-4">
+        <div id="modal-doa-arabic" class="font-kufi-eastern text-xl sm:text-2xl font-bold text-amber-300 text-right leading-loose mb-4" dir="rtl">
+          <!-- Teks Arab Doa -->
+        </div>
+
+        <div id="modal-doa-latin" class="text-xs sm:text-sm font-semibold text-emerald-300 italic mb-3">
+          <!-- Transliterasi Latin -->
+        </div>
+
+        <div id="modal-doa-meaning" class="text-xs sm:text-sm text-slate-200 leading-relaxed mb-4 bg-slate-900/60 p-3.5 rounded-2xl border border-slate-700/50">
+          <!-- Terjemahan -->
+        </div>
+
+        <div class="text-xs text-amber-400/90 bg-amber-950/30 p-3 rounded-xl border border-amber-500/20">
+          ✨ <span id="modal-doa-virtue"></span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-800">
+        <button id="btn-play-doa-audio" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider transition flex items-center space-x-1.5 shadow-lg shadow-amber-500/30">
+          <span>🔊 Putar Audio Doa</span>
+        </button>
+        <button onclick="App.closeDoaModal();" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: TADABBUR QS. AN-NUR AYAT 35 (CAHAYA DIATAS CAHAYA)
+       ========================================== -->
+  <div id="nur-ayat-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel-warm rounded-3xl p-6 sm:p-8 max-w-2xl w-full border border-amber-500/40 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/30">
+        <div>
+          <h3 class="text-lg sm:text-xl font-black text-amber-300 flex items-center space-x-2">
+            <span>✨</span>
+            <span>Tadabbur QS. An-Nur Ayat 35</span>
+          </h3>
+          <p class="text-xs text-slate-400 font-bold">"Nurun 'Ala Nur" — Cahaya Diatas Cahaya</p>
+        </div>
+        <button id="btn-close-nur-modal" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="my-4">
+        <!-- Kaligrafi Kufi Murabba Judul -->
+        <div class="text-center py-2 mb-4 bg-slate-900/60 rounded-2xl border border-amber-500/30">
+          <div class="font-kufi-murabba text-2xl text-amber-300 font-bold" dir="rtl">نُـورٌ عَـلَـىٰ نُـورٍ</div>
+          <div class="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-1">Cahaya Diatas Cahaya</div>
+        </div>
+
+        <!-- Teks Ayat Arab -->
+        <div id="modal-nur-arabic" class="font-kufi-eastern text-xl sm:text-2xl text-amber-200 text-right leading-loose mb-5" dir="rtl">
+          <!-- Teks Arab An-Nur 35 -->
+        </div>
+
+        <div class="text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">Terjemahan Ayat:</div>
+        <div id="modal-nur-meaning" class="text-xs sm:text-sm text-slate-200 leading-relaxed mb-5 bg-slate-900/70 p-4 rounded-2xl border border-slate-700/60 italic">
+          <!-- Terjemahan -->
+        </div>
+
+        <div class="text-xs text-amber-400 uppercase font-bold tracking-wider mb-1">Mutiara Tadabbur:</div>
+        <div id="modal-nur-tadabbur" class="text-xs sm:text-sm text-amber-200/90 leading-relaxed bg-amber-950/40 p-4 rounded-2xl border border-amber-500/30">
+          <!-- Penjelasan Tadabbur -->
+        </div>
+      </div>
+
+      <div class="text-right mt-6 pt-4 border-t border-slate-800">
+        <button onclick="App.closeNurAyatModal();" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider">
+          Tutup Tadabbur
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 3: MENGENAL KHOT KUFFI MURABBA & EASTERN
+       ========================================== -->
+  <div id="kufi-showcase-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="glass-panel-warm rounded-3xl p-6 sm:p-8 max-w-2xl w-full border border-amber-500/40 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4 pb-3 border-b border-amber-500/30">
+        <div>
+          <h3 class="text-lg sm:text-xl font-black text-white flex items-center space-x-2">
+            <span>📜</span>
+            <span>Mengenal Khot Kuffi Murabba & Eastern</span>
+          </h3>
+          <p class="text-xs text-slate-400">Warisan Seni Kaligrafi Islam Klasik & Geometris</p>
+        </div>
+        <button id="btn-close-kufi-modal" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-white font-bold flex items-center justify-center">✕</button>
+      </div>
+
+      <div class="space-y-6 my-4">
+        <!-- 1. Khot Kuffi Murabba (Square Kufic) -->
+        <div class="bg-slate-950/80 p-5 rounded-2xl border border-amber-500/30">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-black text-amber-300">1. Khot Kuffi Murabba (الخط الكوفي المربع / Square Kufic)</h4>
+            <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded font-bold">Arsitektural</span>
+          </div>
+          <div class="font-kufi-murabba text-2xl text-amber-200 text-center my-3 py-2 bg-slate-900 rounded-xl" dir="rtl">
+            بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Khot Kuffi Murabba adalah kaligrafi murni geometris berbentuk persegi (grid kotak). Ketebalan garis huruf dan jarak rongga kosong memiliki perbandingan presisi 1:1. Sering menghiasi dinding marmer, kubah, menara, dan mihrab masjid bersejarah di Andalusia, Samarkand, dan Isfahan.
+          </p>
+        </div>
+
+        <!-- 2. Khot Kuffi Eastern (Mashriqi) -->
+        <div class="bg-slate-950/80 p-5 rounded-2xl border border-emerald-500/30">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-sm font-black text-emerald-300">2. Khot Kuffi Eastern (الخط الكوفي الشرقي / Mashriqi Kufic)</h4>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-bold">Anggun Klasik</span>
+          </div>
+          <div class="font-kufi-eastern text-2xl text-emerald-200 text-center my-3 py-2 bg-slate-900 rounded-xl" dir="rtl">
+            نُـورٌ عَـلَـىٰ نُـورٍ يَهْدِي اللَّهُ لِنُورِهِ مَنْ يَشَاءُ
+          </div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Khot Kuffi Eastern berkembang di wilayah timur dunia Islam (Baghdad, Khurasan, Persia). Ditandai dengan tarikan garis vertikal (alif dan lam) yang tinggi menjulang, ujung bersudut lancip dinamis, serta keluwesan lengkungan yang memancarkan kewibawaan spiritual naskah Al-Qur'an abad pertengahan.
+          </p>
+        </div>
+
+        <!-- 3. Harmoni Desain Aplikasi -->
+        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-700/50 text-xs text-slate-300 leading-relaxed">
+          💡 <span class="font-bold text-amber-300">Penerapan di Aplikasi "Cahaya Diatas Cahaya":</span>
+          Kami memadukan Kuffi Murabba pada judul dan ornamen geometris arsitektur, serta Kuffi Eastern pada teks hadits dan ayat Al-Qur'an demi kemudahan membaca yang tetap sarat nilai seni estetika tinggi.
+        </div>
+      </div>
+
+      <div class="text-right mt-6 pt-4 border-t border-slate-800">
+        <button onclick="App.closeKufiShowcaseModal();" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider">
+          Tutup Penjelasan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Modules -->
+  <script src="js/quotes-data.js"></script>
+  <script src="js/hijri.js"></script>
+  <script src="js/prayer-calc.js"></script>
+  <script src="js/audio-player.js"></script>
+  <script src="js/kufi-art.js"></script>
+  <script src="js/nabawi-background.js"></script>
+  <script src="js/tasbih-asmaulhusna.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>

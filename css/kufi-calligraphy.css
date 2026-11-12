@@ -1,0 +1,157 @@
+/* ==========================================================================
+   kufi-calligraphy.css
+   Tipografi Khusus Khot Kuffi Murabba (Square Kufic) & Khot Kuffi Eastern (Mashriqi)
+   Aplikasi "Cahaya Diatas Cahaya"
+   ========================================================================== */
+
+/* Import Google Fonts Kufi Terbaik */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800;900&family=Reem+Kufi:wght@400;500;600;700&family=Reem+Kufi+Fun:wght@400;500;600;700&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  --font-kufi-eastern: 'Noto Kufi Arabic', 'Reem Kufi', sans-serif;
+  --font-kufi-murabba: 'Reem Kufi Fun', 'Noto Kufi Arabic', monospace;
+  --font-amiri: 'Amiri', serif;
+}
+
+/* ==========================================================================
+   1. Khot Kuffi Eastern (الخط الكوفي الشرقي)
+   Anggun, berwibawa, garis vertikal tinggi, melengkung lembut khas naskah kuno
+   ========================================================================== */
+.font-kufi-eastern,
+[data-kufi-style="eastern"] .kufi-dynamic-text {
+  font-family: var(--font-kufi-eastern) !important;
+  font-feature-settings: "cv01", "ss01", "ss02", "liga" 1;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  line-height: 2.2;
+}
+
+.font-kufi-eastern-bold {
+  font-family: 'Noto Kufi Arabic', sans-serif !important;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+/* ==========================================================================
+   2. Khot Kuffi Murabba (الخط الكوفي المربع / Square Kufic)
+   Geometris, arsitektural, modular, terinspirasi mozaik Samarkand & Andalusia
+   ========================================================================== */
+.font-kufi-murabba,
+[data-kufi-style="murabba"] .kufi-dynamic-text {
+  font-family: var(--font-kufi-murabba) !important;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 2.0;
+  font-variant-ligatures: normal;
+  text-shadow: 0 0 1px rgba(251, 191, 36, 0.4);
+}
+
+/* Grid Ornamen Kuffi Murabba */
+.kufi-murabba-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  box-shadow: inset 0 0 8px rgba(16, 185, 129, 0.15);
+  position: relative;
+}
+
+.kufi-murabba-badge::before,
+.kufi-murabba-badge::after {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: #fbbf24;
+}
+
+.kufi-murabba-badge::before {
+  top: 0;
+  left: 0;
+}
+
+.kufi-murabba-badge::after {
+  bottom: 0;
+  right: 0;
+}
+
+/* ==========================================================================
+   3. Mode Harmonis (Default):
+   Murabba untuk Judul & Badge, Eastern untuk Teks Hadits & Doa
+   ========================================================================== */
+.kufi-title-murabba {
+  font-family: var(--font-kufi-murabba);
+  letter-spacing: 0.05em;
+  font-weight: 800;
+}
+
+.kufi-content-eastern {
+  font-family: var(--font-kufi-eastern);
+  line-height: 2.4;
+  letter-spacing: 0.01em;
+}
+
+/* Kaligrafi SVG Murabba Pembatas & Hiasan */
+.svg-kufi-frame {
+  display: inline-block;
+  vertical-align: middle;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.svg-kufi-frame:hover {
+  transform: scale(1.02);
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.4));
+}
+
+/* Teks Kaligrafi Keemasan Bercahaya (Cahaya Diatas Cahaya) */
+.text-nur-glow {
+  color: #fef08a;
+  text-shadow: 
+    0 0 12px rgba(251, 191, 36, 0.55),
+    0 0 24px rgba(245, 158, 11, 0.35);
+}
+
+.text-emerald-glow {
+  color: #a7f3d0;
+  text-shadow: 
+    0 0 12px rgba(52, 211, 153, 0.5),
+    0 0 24px rgba(16, 185, 129, 0.3);
+}
+
+/* Pembatas Islami Geometris Kufi */
+.islamic-divider-kufi {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5rem 0;
+  opacity: 0.85;
+}
+
+.islamic-divider-kufi::before,
+.islamic-divider-kufi::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px dashed rgba(251, 191, 36, 0.35);
+  margin: 0 1rem;
+}
+
+.islamic-divider-kufi span {
+  font-size: 1.25rem;
+  color: #fbbf24;
+}
+
+/* Animasi Denyut Cahaya Spiritual (Nurun 'Ala Nur) */
+@keyframes nurGlowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5)) drop-shadow(0 0 18px rgba(16, 185, 129, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.85)) drop-shadow(0 0 35px rgba(245, 158, 11, 0.5));
+  }
+}
+
+.glow-cahaya {
+  animation: nurGlowPulse 4s ease-in-out infinite;
+}
